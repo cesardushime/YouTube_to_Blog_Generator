@@ -24,6 +24,7 @@ def generate_blog(request):
         # get yt title
         title = yt_title(yt_link)
         # get transcript
+
         # user OpenAI to generate the blog
         # Save blog article to database
         # return blog article as a response
@@ -33,6 +34,15 @@ def yt_title(link):
     yt = YouTube(link)
     title = yt.title
     return title
+
+def download_audio(link):
+    yt = YouTube(link)
+    video = yt.streams.filter(only_audio=True).first()
+
+def get_transcription(link):
+    # audio_file = pass
+    pass
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST['username']  
