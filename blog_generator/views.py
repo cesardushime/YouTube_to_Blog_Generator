@@ -6,12 +6,18 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 from pytube import YouTube
+from django.conf import settings
+import os
+import assemblyai as aai
+import openai
+
 # Creating veiws and rendering templates.
 
 @login_required
 def index(request):
     return render(request, 'index.html')
 
+## To be fixed as it can't generate a blog
 @csrf_exempt
 def generate_blog(request):
     if request.method == 'POST':
@@ -21,13 +27,20 @@ def generate_blog(request):
         except(KeyError, json.JSONDecodeError):
             return JsonResponse({'error': 'Invalid request method'}, status=405) 
         
+        # To be fixed as pytube doesn't seem to get the youtube title
         # get yt title
         title = yt_title(yt_link)
         # get transcript
-
+        transcription = get_transcription(yt_link)
+        if not transcription:
+            return JsonResponse({'error': "Failed to get transcript"}, status=500)
         # user OpenAI to generate the blog
+        blog_content = generate_blog_from_transcription(transcription)
+        if not blog_content:
+            return JsonResponse({'error': "Failed to generate blog article"}, status=500)
         # Save blog article to database
         # return blog article as a response
+        return JsonResponse({'content': blog_content})
     else:
         return JsonResponse({'error': 'Invalid data sent'}, status=400)
 def yt_title(link):
@@ -37,11 +50,45 @@ def yt_title(link):
 
 def download_audio(link):
     yt = YouTube(link)
-    video = yt.streams.filter(only_audio=True).first()
+    video = yt.streams.filter(only_audio=True, file_extension='mp3').first()
+    out_file = video.download(output_path=settings.MEDIA_ROOT)
+    base, ext = os.path.splitext(out_file)
+    new_file = base + '.mp3'
+    os.rename(out_file, new_file)
+    return new_file
 
 def get_transcription(link):
-    # audio_file = pass
-    pass
+    audio_file = download_audio(link)
+    aai.settings.api_key = "26a65cb798cb4519a6a7d217f4f4b7c8"
+
+    transcriber = aai.transcriber()
+    transcript = transcriber.transcribe(audio_file)
+    
+    return transcript.text
+
+def generate_blog_from_transcription(transcription):
+    openai.api_key = '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'
+    prompt = f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but don't make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\n Article:"
+    
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt=prompt,
+        max_tokens = 1000
+    )
+
+    generated_content = response.choices[0].text.strip()
+
+    return generated_content
+
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt=prompt,
+        max_tokens=1000
+    )
+
+    generated_content = response.choices[0].text.strip()
+
+    return generated_content
 
 def user_login(request):
     if request.method == 'POST':
