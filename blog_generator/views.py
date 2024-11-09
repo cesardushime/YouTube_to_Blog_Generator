@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
-from pytube import YouTube
+from yt_dlp import YoutubeDL
 from django.conf import settings
 import os
 import assemblyai as aai
@@ -44,18 +44,24 @@ def generate_blog(request):
     else:
         return JsonResponse({'error': 'Invalid data sent'}, status=400)
 def yt_title(link):
-    yt = YouTube(link)
-    title = yt.title
-    return title
+    with YoutubeDL() as myVideo:
+            info_dict = myVideo.extract_info(link, download=False)
+            return info_dict.get("title", "No title found")
 
 def download_audio(link):
-    yt = YouTube(link)
-    video = yt.streams.filter(only_audio=True, file_extension='mp3').first()
-    out_file = video.download(output_path=settings.MEDIA_ROOT)
-    base, ext = os.path.splitext(out_file)
-    new_file = base + '.mp3'
-    os.rename(out_file, new_file)
-    return new_file
+    ydl_opts = {
+        'format': 'bestaudio/best',  # highest quality audio
+        'outtmpl': f'{settings.MEDIA_ROOT}/%(title)s.%(ext)s',  # Save file to MEDIA_ROOT with title as video title
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',  # Extract only audio
+            'preferredcodec': 'mp3',      # Convert to mp3
+            'preferredquality': '192',    # Sets audio quality
+        }],
+        'ffmpeg_location': "C:\\Users\\user\\OneDrive\\Documents\\ffmpeg-7.0.2-essentials_build\\bin"
+    }
+
+    with YoutubeDL(ydl_opts) as myDownload:
+            return myDownload.download([link])  # Download the audio
 
 def get_transcription(link):
     audio_file = download_audio(link)
