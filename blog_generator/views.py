@@ -10,6 +10,7 @@ from django.conf import settings
 import os
 import assemblyai as aai
 import openai
+from .models import BlogPost
 
 # Creating veiws and rendering templates.
 
@@ -34,11 +35,19 @@ def generate_blog(request):
         transcription = get_transcription(yt_link)
         if not transcription:
             return JsonResponse({'error': "Failed to get transcript"}, status=500)
-        # user OpenAI to generate the blog
+        # use OpenAI to generate the blog
         blog_content = generate_blog_from_transcription(transcription)
         if not blog_content:
             return JsonResponse({'error': "Failed to generate blog article"}, status=500)
         # Save blog article to database
+        
+        new_blog_article = BlogPost.objects.create(
+            user = request.user,
+            youtube_title = title,
+            youtube_link = yt_link,
+            generate_content = blog_content,
+        )
+        new_blog_article.save()
         # return blog article as a response
         return JsonResponse({'content': blog_content})
     else:
