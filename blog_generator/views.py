@@ -61,23 +61,30 @@ def download_audio(link):
     }
 
     with YoutubeDL(ydl_opts) as myDownload:
-            return myDownload.download([link])  # Download the audio
+            result = myDownload.download([link])  # Download the audio
+            info_dict = myDownload.extract_info(link, download=False)
+            file_path = f'{settings.MEDIA_ROOT}\\{info_dict.get('title')}.mp3'
+            return file_path  # Returning filepath for the donwloaded file
 
 def get_transcription(link):
     audio_file = download_audio(link)
+    if not audio_file:
+        return None
+    
     aai.settings.api_key = "26a65cb798cb4519a6a7d217f4f4b7c8"
 
-    transcriber = aai.transcriber()
+    transcriber = aai.Transcriber()
     transcript = transcriber.transcribe(audio_file)
     
     return transcript.text
 
 def generate_blog_from_transcription(transcription):
-    openai.api_key = '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'
+    openai.api_key = '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'
     prompt = f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but don't make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\n Article:"
     
     response = openai.Completion.create(
-        model="text-davinci-003",
+        # model="text-davinci-003",
+        model = "gpt-3.5-turbo",
         prompt=prompt,
         max_tokens = 1000
     )
@@ -86,15 +93,7 @@ def generate_blog_from_transcription(transcription):
 
     return generated_content
 
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
-        max_tokens=1000
-    )
-
-    generated_content = response.choices[0].text.strip()
-
-    return generated_content
+## Login functionality
 
 def user_login(request):
     if request.method == 'POST':

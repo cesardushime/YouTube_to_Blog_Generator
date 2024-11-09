@@ -73,7 +73,7 @@
             <div>
                 <h2 class="text-xl mb-4 font-semibold">Enter YouTube Video Link</h2> 
                 <div class="flex space-x-4">
-                    <input id="yt_link" type="url" placeholder="Paste YouTube Link..." class="flex-grow p-2 border border-blue-400 rounded-l-md">
+                    <input id="link" type="url" placeholder="Paste YouTube Link..." class="flex-grow p-2 border border-blue-400 rounded-l-md">
                     <button id="generateBlogButton" class="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 transition-colors">Generate</button>
                 </div>
             </div>
@@ -98,13 +98,13 @@
     <script>
         document.getElementById('generateBlogButton').addEventListener('click', async () => {
             
-            const yt_link = document.getElementById('yt_link').value; // corrected ID
+            const yt_link = document.getElementById('link').value; // corrected ID
             const blogContent = document.getElementById('blogContent');
             const loadingCircle = document.getElementById('loading-circle');
     
             if (yt_link) {
                 loadingCircle.style.display = 'block'; // Show loading circle
-                blogContent.innerHTML = ''; // Clear previous content
+                blogContent.innerHTML = ""; // Clear previous content
     
                 const endpointUrl = '/generate-blog';
                 
