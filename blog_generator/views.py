@@ -9,7 +9,7 @@ from yt_dlp import YoutubeDL
 from django.conf import settings
 import os
 import assemblyai as aai
-import openai
+import google.generativeai as genai
 from .models import BlogPost
 
 # Creating veiws and rendering templates.
@@ -73,7 +73,7 @@ def download_audio(link):
             result = myDownload.download([link])  # Download the audio
             info_dict = myDownload.extract_info(link, download=False)
             file_path = f'{settings.MEDIA_ROOT}\\{info_dict.get('title')}.mp3'
-            return file_path  # Returning filepath for the donwloaded file
+            return str(file_path)  # Returning filepath for the donwloaded file
 
 def get_transcription(link):
     audio_file = download_audio(link)
@@ -88,17 +88,11 @@ def get_transcription(link):
     return transcript.text
 
 def generate_blog_from_transcription(transcription):
-    openai.api_key = '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'
-    prompt = f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but don't make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\n Article:"
+    genai.configure(api_key = 'AIzaSyBBPETsDFIna-_Hf_aK9ktWhOHR6W1cYEQ')
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but don't make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\n Article:")
     
-    response = openai.Completion.create(
-        # model="text-davinci-003",
-        model = "gpt-3.5-turbo",
-        prompt=prompt,
-        max_tokens = 1000
-    )
-
-    generated_content = response.choices[0].text.strip()
+    generated_content = response.text
 
     return generated_content
 
