@@ -9,6 +9,7 @@ from yt_dlp import YoutubeDL
 from django.conf import settings
 import os
 import re
+import markdown2
 import assemblyai as aai
 import google.generativeai as genai
 from .models import BlogPost
@@ -64,7 +65,7 @@ def yt_title(link):
 
 def clean_filename(title):
     # Remove or replace any unsupported characters
-    return re.sub(r'[<>:"/\\|?*]', '_', title)
+    return re.sub(r'[<>:"/\\|*]', '', title)
 
 def download_audio(link):
     ydl_opts = {
@@ -88,25 +89,7 @@ def download_audio(link):
         file_path = os.path.join(settings.MEDIA_ROOT, f"{clean_title}.mp3")
     return file_path  # Return the cleaned file path
 
-
-# def download_audio(link):
-#     ydl_opts = {
-#         'format': 'bestaudio/best',  # highest quality audio
-#         'outtmpl': f'{settings.MEDIA_ROOT}/%(title)s.%(ext)s',  # Save file to MEDIA_ROOT with title as video title
-#         'postprocessors': [{
-#             'key': 'FFmpegExtractAudio',  # Extract only audio
-#             'preferredcodec': 'mp3',      # Convert to mp3
-#             'preferredquality': '192',    # Sets audio quality
-#         }],
-#         'ffmpeg_location': "C:\\Users\\user\\OneDrive\\Documents\\ffmpeg-7.0.2-essentials_build\\bin"
-#     }
-
-#     with YoutubeDL(ydl_opts) as myDownload:
-#             result = myDownload.download([link])  # Download the audio
-#             info_dict = myDownload.extract_info(link, download=False)
-#             file_path = f"{settings.MEDIA_ROOT}\\{info_dict.get('title')}.mp3"
-#             return file_path  # Returning filepath for the donwloaded file
-
+# Transcribing text with assembly AI
 def get_transcription(link):
     audio_file = download_audio(link)
     if not audio_file:
@@ -125,8 +108,9 @@ def generate_blog_from_transcription(transcription):
     response = model.generate_content(f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but don't make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\n Article:")
     
     generated_content = response.text
+    generated_content_html = markdown2.markdown(generated_content)
 
-    return generated_content
+    return generated_content_html
 
 ## Login functionality
 
