@@ -8,6 +8,7 @@ import json
 from yt_dlp import YoutubeDL
 from django.conf import settings
 import os
+import re
 import assemblyai as aai
 import google.generativeai as genai
 from .models import BlogPost
@@ -45,7 +46,7 @@ def generate_blog(request):
             user = request.user,
             youtube_title = title,
             youtube_link = yt_link,
-            generate_content = blog_content,
+            generated_content = blog_content,
         )
         new_blog_article.save()
         # return blog article as a response
@@ -55,25 +56,56 @@ def generate_blog(request):
 def yt_title(link):
     with YoutubeDL() as myVideo:
             info_dict = myVideo.extract_info(link, download=False)
-            return info_dict.get("title", "No title found")
+            title = clean_filename(info_dict.get("title", "No title found"))
+    return title
+        
+
+# Removing special characters fro the name of the file (to avoid invalid name formats)
+
+def clean_filename(title):
+    # Remove or replace any unsupported characters
+    return re.sub(r'[<>:"/\\|?*]', '_', title)
 
 def download_audio(link):
     ydl_opts = {
-        'format': 'bestaudio/best',  # highest quality audio
-        'outtmpl': f'{settings.MEDIA_ROOT}/%(title)s.%(ext)s',  # Save file to MEDIA_ROOT with title as video title
+        'format': 'bestaudio/best',
+        'outtmpl': f'{settings.MEDIA_ROOT}/%(title)s.%(ext)s',
         'postprocessors': [{
-            'key': 'FFmpegExtractAudio',  # Extract only audio
-            'preferredcodec': 'mp3',      # Convert to mp3
-            'preferredquality': '192',    # Sets audio quality
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
         }],
         'ffmpeg_location': "C:\\Users\\user\\OneDrive\\Documents\\ffmpeg-7.0.2-essentials_build\\bin"
     }
 
     with YoutubeDL(ydl_opts) as myDownload:
-            result = myDownload.download([link])  # Download the audio
-            info_dict = myDownload.extract_info(link, download=False)
-            file_path = f'{settings.MEDIA_ROOT}\\{info_dict.get('title')}.mp3'
-            return str(file_path)  # Returning filepath for the donwloaded file
+        result = myDownload.download([link])  # Download the audio
+        info_dict = myDownload.extract_info(link, download=False)
+        
+        # Sanitize file name
+        clean_title = clean_filename(info_dict.get('title', 'audio'))
+        
+        file_path = os.path.join(settings.MEDIA_ROOT, f"{clean_title}.mp3")
+    return file_path  # Return the cleaned file path
+
+
+# def download_audio(link):
+#     ydl_opts = {
+#         'format': 'bestaudio/best',  # highest quality audio
+#         'outtmpl': f'{settings.MEDIA_ROOT}/%(title)s.%(ext)s',  # Save file to MEDIA_ROOT with title as video title
+#         'postprocessors': [{
+#             'key': 'FFmpegExtractAudio',  # Extract only audio
+#             'preferredcodec': 'mp3',      # Convert to mp3
+#             'preferredquality': '192',    # Sets audio quality
+#         }],
+#         'ffmpeg_location': "C:\\Users\\user\\OneDrive\\Documents\\ffmpeg-7.0.2-essentials_build\\bin"
+#     }
+
+#     with YoutubeDL(ydl_opts) as myDownload:
+#             result = myDownload.download([link])  # Download the audio
+#             info_dict = myDownload.extract_info(link, download=False)
+#             file_path = f"{settings.MEDIA_ROOT}\\{info_dict.get('title')}.mp3"
+#             return file_path  # Returning filepath for the donwloaded file
 
 def get_transcription(link):
     audio_file = download_audio(link)
