@@ -20,27 +20,27 @@
     <br>
 
     <!-- Main content container-->
-     <div class="container mx-auto mt-10 sm:px-0">
+    <div class="container mx-auto mt-10 sm:px-0">
         <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg">
             <!-- Blog posts section -->
             <section>
                 <h2 class="text-xl mb-4 font-semibold">Blog post Details</h2>
                 <div class="space-y-4">
-                    <div class="border border-gray-300 p-4 rounded-lg"">
-                        <h3 class="text-lg font-semibold"> Blog Post Title</h3>
-                        <p class="text-gray-700">This is the content</p>
+                    <div class="border border-gray-300 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold">{{blog_article_detail.youtube_title}}</h3>
+                        <p class="text-gray-700">{{blog_article_detail.generated_content}}</p>
                         <hr class="my-4 border-gray-300">
                         <h4 class="text-lg font-semibold">YouTube Title</h4>
-                        <p class="text-gray-700">Title of the accociated youtube video</p>
+                        <p class="text-gray-700">{{blog_article_detail.youtube_title}}</p>
                         <h4 class="text-lg font-semibold mt-4">YouTube Link</h4>
-                        <a href="#" class="text-blue-600 hover:underline">https://youtu.be/ftKiHCDVwfA?si=npdiE3hSx_Dy4jhj</a>
+                        <a href="{{blog_article_detail.youtube_link}}" class="text-blue-600 hover:underline">{{blog_article_detail.youtube_link}}</a>
                     </div>
                     
                 </div>
             </section>
         </div>
-     </div>
-     <footer class="text-center p-4 text-blacl mt-6">
+    </div>
+    <footer class="text-center p-4 text-blacl mt-6">
         Powered by <a href="https://www.linkedin.com/in/cesar-dushimimana-731345236/">Code with Cesar</a>
     </footer>
 </body>
