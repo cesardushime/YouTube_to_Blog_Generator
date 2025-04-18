@@ -22,9 +22,3 @@ This tool allows users to paste a YouTube video link, which is then processed, t
 - Blog output is fully written and non-editable in the current version  
 - The free version supports up to 10 videos per day (based on user’s plan)  
 
-## 📬 Author
-
-**Cesar Dushimimana**  
-📧 dushimezar2003@gmail.com  
-🌍 [LinkedIn](https://www.linkedin.com/in/cesar-dushimana-731345236/)  
-💻 [GitHub](https://github.com/cesardushime)
